@@ -3,9 +3,8 @@ import { SEGMENTS, FAVORITES_SEGMENT } from '../models/ChannelModel.js';
 const ORDERED_SEGMENTS = [FAVORITES_SEGMENT, ...SEGMENTS];
 
 /**
- * ChannelController: sabe qual segmento está ativo e qual é a busca livre
- * atual, pede dados ao ChannelModel usando a credencial fornecida pelo
- * AuthController, e manda a ChannelView desenhar o resultado.
+ * ChannelController: gerencia o segmento ativo, busca por canais/destaques,
+ * interage com ChannelModel e delega a renderização para ChannelView.
  */
 export class ChannelController {
   constructor(channelModel, channelView, authModel) {
@@ -62,6 +61,10 @@ export class ChannelController {
       return this._refreshFavorites(credential);
     }
 
+    if (this.segment.isCurated) {
+      return this._refreshCurated(credential);
+    }
+
     this.view.setStatus('Sintonizando transmissões ao vivo…');
     this.view.clearGrid();
 
@@ -85,6 +88,32 @@ export class ChannelController {
 
     } catch (err) {
       this.view.setStatus(err.message || 'Erro ao buscar canais ao vivo.', true);
+      this.view.clearGrid();
+    }
+  }
+
+  async _refreshCurated(credential) {
+    this.view.setStatus('Sintonizando canais em destaque…');
+    this.view.clearGrid();
+
+    try {
+      const items = await this.channelModel.fetchCuratedLive({ credential });
+
+      if (items.length === 0) {
+        this.view.setStatus('');
+        this.view.showEmpty('Nenhum destaque ao vivo', 'Nenhum dos canais em destaque está transmitindo agora.');
+        return;
+      }
+
+      const viewerMap = await this.channelModel.fetchViewerCounts({
+        credential, videoIds: items.map(it => it.id.videoId),
+      });
+
+      this.view.setStatus(`${items.length} canal(is) em destaque ao vivo agora.`);
+      this.view.renderGrid(items, viewerMap, id => this.authModel.isFavorite(id));
+
+    } catch (err) {
+      this.view.setStatus(err.message || 'Erro ao buscar canais em destaque.', true);
       this.view.clearGrid();
     }
   }

@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sinal Ao Vivo — Canais do YouTube por segmento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0B0D10;
+    --panel: #14171C;
+    --panel-2: #1B1F26;
+    --border: #262B33;
+    --text: #EDEFF2;
+    --muted: #8A93A3;
+    --live: #FF3B30;
+    --live-glow: rgba(255,59,48,0.35);
+    --amber: #FFB020;
+    --teal: #34D8C6;
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:'Inter',system-ui,sans-serif; -webkit-font-smoothing:antialiased;}
+  .board{max-width:1180px;margin:0 auto;padding:28px 20px 80px;}
+  .hidden{display:none !important;}
+
+  /* ---- masthead ---- */
+  .masthead{border-bottom:1px solid var(--border); padding-bottom:18px; margin-bottom:22px;}
+  .tally-brand{font-family:'Big Shoulders Display',sans-serif; font-weight:800;
+    font-size:clamp(32px,6vw,52px); letter-spacing:0.5px; display:flex; align-items:center; gap:14px; line-height:1;}
+  .tally-brand .accent{color:var(--live);}
+  .tally-dot{width:16px;height:16px;border-radius:50%;background:var(--live);
+    box-shadow:0 0 0 0 var(--live-glow); flex-shrink:0;
+    animation:pulse 1.6s infinite;}
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 var(--live-glow);}
+    70%{box-shadow:0 0 0 14px rgba(255,59,48,0);}
+    100%{box-shadow:0 0 0 0 rgba(255,59,48,0);}
+  }
+  .tagline{color:var(--muted); margin:8px 0 0; font-size:15px;}
+
+  /* ---- shared config panels ---- */
+  .config-panel{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px 18px; margin-bottom:16px;}
+  .panel-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:10px; flex-wrap:wrap;}
+  .section-label{font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--amber); font-size:12px; margin:0;}
+  .config-panel label{display:block; font-size:12px; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--muted); margin-bottom:8px;}
+  .key-row{display:flex; gap:10px; flex-wrap:wrap;}
+  #username, #apiKey{flex:1; min-width:220px; background:var(--bg); border:1px solid var(--border);
+    color:var(--text); padding:10px 12px; border-radius:8px; font-family:'IBM Plex Mono',monospace; font-size:13px;}
+  #username:focus-visible, #apiKey:focus-visible, button:focus-visible, .preset:focus-visible, input:focus-visible{
+    outline:2px solid var(--teal); outline-offset:2px;}
+  button{cursor:pointer; border:none; border-radius:8px; font-family:'Inter',sans-serif; font-weight:600;}
+  #loginBtn, #saveKeyBtn{background:var(--amber); color:#1a1300; padding:10px 18px; font-size:14px;}
+  #loginBtn:hover, #saveKeyBtn:hover{filter:brightness(1.08);}
+  .hint{color:var(--muted); font-size:12.5px; margin:10px 0 0; line-height:1.5;}
+  .hint a{color:var(--teal);}
+  .panel-status{font-size:12.5px; margin-top:8px; font-family:'IBM Plex Mono',monospace; min-height:16px;}
+  .panel-status.ok{color:var(--teal);}
+  .panel-status.error{color:var(--live);}
+  .btn-ghost{background:transparent; border:1px solid var(--border); color:var(--text); padding:9px 14px; font-size:13px; border-radius:8px;}
+  .btn-ghost:hover{border-color:var(--teal); color:var(--teal);}
+  .btn-ghost.small{padding:6px 12px; font-size:12.5px;}
+  .link-muted{background:none; border:none; color:var(--muted); font-size:12px; text-decoration:underline;
+    padding:0; font-weight:500; cursor:pointer;}
+  .link-muted:hover{color:var(--live);}
+
+  /* ---- channel board presets ---- */
+  .presets{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;}
+  .preset{background:var(--panel); border:1px solid var(--border); color:var(--text);
+    padding:9px 14px; font-size:13.5px; display:flex; align-items:center; gap:8px;}
+  .preset .ch{font-family:'IBM Plex Mono',monospace; color:var(--muted); font-size:11.5px;}
+  .preset:hover{border-color:var(--amber);}
+  .preset.active{background:var(--panel-2); border-color:var(--amber); box-shadow:inset 0 -2px 0 var(--amber);}
+  .preset.active .ch{color:var(--amber);}
+  .preset.favorites{border-color:#3a2f12;}
+  .preset.favorites .ch{color:var(--amber);}
+
+  /* ---- tuner / search ---- */
+  .tuner{display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;}
+  #searchInput{flex:1; min-width:220px; background:var(--panel); border:1px solid var(--border);
+    color:var(--text); padding:12px 14px; border-radius:8px; font-size:14px;}
+  #searchBtn{background:var(--panel-2); color:var(--text); border:1px solid var(--border); padding:0 22px; font-size:14px;}
+  #searchBtn:hover{border-color:var(--teal); color:var(--teal);}
+
+  .status{font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--muted); min-height:18px; margin-bottom:14px;}
+  .status.error{color:var(--live);}
+
+  /* ---- player ---- */
+  .player{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px; margin-bottom:26px; position:relative;}
+  .player.hidden{display:none;}
+  .player-frame{position:relative; border:2px solid var(--amber); border-radius:6px; overflow:hidden;
+    aspect-ratio:16/9; background:#000;}
+  .player-frame iframe{position:absolute; inset:0; width:100%; height:100%; border:0;}
+  .corner{position:absolute; width:14px; height:14px; border-color:var(--amber); z-index:2;}
+  .corner.tl{top:6px; left:6px; border-top:2px solid; border-left:2px solid;}
+  .corner.tr{top:6px; right:6px; border-top:2px solid; border-right:2px solid;}
+  .corner.bl{bottom:6px; left:6px; border-bottom:2px solid; border-left:2px solid;}
+  .corner.br{bottom:6px; right:6px; border-bottom:2px solid; border-right:2px solid;}
+  .player-meta{display:flex; justify-content:space-between; align-items:flex-start; gap:14px;
+    margin-top:14px; flex-wrap:wrap;}
+  .player-info h2{font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:22px; margin:0 0 4px;}
+  .player-info .channel{color:var(--muted); font-size:13.5px;}
+  .player-actions{display:flex; gap:8px; flex-wrap:wrap;}
+  .btn-outline{background:transparent; border:1px solid var(--amber); color:var(--amber); padding:9px 14px; font-size:13px; text-decoration:none; display:inline-flex; align-items:center;}
+  .btn-outline:hover{background:var(--amber); color:#1a1300;}
+  .btn-close{background:var(--panel-2); color:var(--muted); border:1px solid var(--border); padding:9px 14px; font-size:13px;}
+  .btn-fav{background:var(--panel-2); border:1px solid var(--border); color:var(--text); padding:9px 14px; font-size:13px;}
+  .btn-fav.active{border-color:var(--amber); color:var(--amber);}
+
+  /* ---- grid ---- */
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px;}
+  .card{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
+    overflow:hidden; display:flex; flex-direction:column; transition:border-color .15s ease, transform .15s ease;}
+  .card:hover{border-color:var(--amber); transform:translateY(-2px);}
+  .thumb-wrap{position:relative; aspect-ratio:16/9; background:#000; cursor:pointer;}
+  .thumb-wrap img{width:100%; height:100%; object-fit:cover; display:block;}
+  .tally{position:absolute; top:8px; left:8px; background:var(--live); color:#fff; font-size:10.5px;
+    font-weight:700; letter-spacing:0.05em; padding:3px 8px; border-radius:4px; display:flex; align-items:center; gap:5px;}
+  .tally .dot{width:6px; height:6px; border-radius:50%; background:#fff; animation:pulse2 1.4s infinite;}
+  @keyframes pulse2{0%,100%{opacity:1;}50%{opacity:0.35;}}
+  .viewers{position:absolute; bottom:8px; right:8px; background:rgba(0,0,0,0.72); color:var(--text);
+    font-family:'IBM Plex Mono',monospace; font-size:11px; padding:3px 8px; border-radius:4px;}
+  .star-btn{position:absolute; top:8px; right:8px; width:28px; height:28px; border-radius:50%;
+    background:rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.25); color:#fff; font-size:14px;
+    display:flex; align-items:center; justify-content:center; line-height:1; padding:0;}
+  .star-btn.active{background:var(--amber); color:#1a1300; border-color:var(--amber);}
+  .card-body{padding:12px 14px 14px; display:flex; flex-direction:column; gap:8px; flex:1;}
+  .card-body .title{font-size:14px; font-weight:600; line-height:1.35;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .card-body .channel{color:var(--muted); font-size:12.5px;}
+  .card-actions{display:flex; gap:8px; margin-top:auto; padding-top:6px;}
+  .card-actions button, .card-actions a{flex:1; text-align:center; font-size:12.5px; padding:8px 6px; text-decoration:none; border-radius:8px;}
+
+  .empty{border:1px dashed var(--border); border-radius:var(--radius); padding:40px 20px; text-align:center; color:var(--muted);}
+  .empty strong{color:var(--text); display:block; font-family:'Big Shoulders Display',sans-serif; font-size:20px; margin-bottom:6px;}
+
+  @media (prefers-reduced-motion: reduce){
+    .tally-dot, .tally .dot{animation:none;}
+  }
+</style>
+</head>
+<body>
+<div class="board">
+
+  <header class="masthead">
+    <div class="tally-brand"><span class="tally-dot"></span>SINAL<span class="accent">AO&nbsp;VIVO</span></div>
+    <p class="tagline">Canais do YouTube transmitindo agora, organizados por segmento. Entre para salvar seus favoritos.</p>
+  </header>
+
+  <!-- 1. LOGIN -->
+  <section class="config-panel" id="loginPanel">
+    <h2 class="section-label">1. Identificação</h2>
+    <label for="username">Seu nome de usuário</label>
+    <div class="key-row">
+      <input id="username" placeholder="ex: milla.oliveira" autocomplete="off" />
+      <button id="loginBtn">Entrar</button>
+    </div>
+    <p class="hint">Sem senha e sem cadastro — esse nome só identifica onde ficam guardados sua chave de API e seus canais favoritos neste navegador.</p>
+    <div id="loginStatus" class="panel-status"></div>
+  </section>
+
+  <!-- 2. CHAVE DE API -->
+  <section class="config-panel hidden" id="keyPanel">
+    <div class="panel-header">
+      <h2 class="section-label">2. Conectar API</h2>
+      <button id="logoutBtn" class="btn-ghost small">Trocar de usuário</button>
+    </div>
+    <label for="apiKey">Chave da YouTube Data API v3</label>
+    <div class="key-row">
+      <input type="password" id="apiKey" placeholder="Cole sua chave aqui" autocomplete="off" />
+      <button id="saveKeyBtn">Conectar</button>
+    </div>
+    <p class="hint">A chave fica salva só no seu perfil, neste navegador — nunca é enviada a nenhum servidor além do Google. Para criar uma, acesse
+      <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">console.cloud.google.com/apis/credentials</a>
+      e ative a "YouTube Data API v3". Cada busca consome cota da API (~100 unidades por segmento).</p>
+    <div id="keyStatus" class="panel-status"></div>
+    <p><button class="link-muted" id="forgetBtn">Apagar meus dados salvos neste navegador</button></p>
+  </section>
+
+  <!-- 3. APP -->
+  <div id="mainApp" class="hidden">
+    <nav class="presets" id="presets" aria-label="Segmentos de canais"></nav>
+
+    <div class="tuner">
+      <input type="text" id="searchInput" placeholder="Buscar canal ou tema dentro do segmento (opcional)" />
+      <button id="searchBtn">Sintonizar</button>
+    </div>
+
+    <div id="status" class="status" aria-live="polite"></div>
+
+    <section id="player" class="player hidden"></section>
+
+    <section id="grid" class="grid"></section>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  const BASE_SEGMENTS = [
+    { id: 'all',   ch: 'TODOS', label: 'Todos os canais', category: null },
+    { id: 'games', ch: '01',    label: 'Jogos',            category: 20 },
+    { id: 'music', ch: '02',    label: 'Música',            category: 10 },
+    { id: 'news',  ch: '03',    label: 'Notícias',          category: 25 },
+    { id: 'sport', ch: '04',    label: 'Esportes',          category: 17 },
+    { id: 'edu',   ch: '05',    label: 'Educação',          category: 27 },
+    { id: 'tech',  ch: '06',    label: 'Tecnologia',        category: 28 },
+    { id: 'ent',   ch: '07',    label: 'Entretenimento',    category: 24 },
+    { id: 'style', ch: '08',    label: 'Estilo & Como Fazer', category: 26 },
+  ];
+  const FAVORITES_SEGMENT = { id: 'favorites', ch: '\u2605', label: 'Favoritos', category: null, isFavorites: true };
+
+  const state = {
+    username: null,
+    apiKey: '',
+    favorites: [],   // [{channelId, channelTitle}]
+    segment: BASE_SEGMENTS[0],
+    query: '',
+    loading: false,
+  };
+
+  const els = {
+    username: document.getElementById('username'),
+    loginBtn: document.getElementById('loginBtn'),
+    loginPanel: document.getElementById('loginPanel'),
+    loginStatus: document.getElementById('loginStatus'),
+    keyPanel: document.getElementById('keyPanel'),
+    logoutBtn: document.getElementById('logoutBtn'),
+    apiKey: document.getElementById('apiKey'),
+    saveKeyBtn: document.getElementById('saveKeyBtn'),
+    keyStatus: document.getElementById('keyStatus'),
+    forgetBtn: document.getElementById('forgetBtn'),
+    mainApp: document.getElementById('mainApp'),
+    presets: document.getElementById('presets'),
+    searchInput: document.getElementById('searchInput'),
+    searchBtn: document.getElementById('searchBtn'),
+    status: document.getElementById('status'),
+    player: document.getElementById('player'),
+    grid: document.getElementById('grid'),
+  };
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+
+  function profileKey(username){
+    return `profile:${username.trim().toLowerCase()}`;
+  }
+
+  function persistProfile(){
+    if (!state.username) return;
+    try {
+      localStorage.setItem(profileKey(state.username), JSON.stringify({
+        apiKey: state.apiKey,
+        favorites: state.favorites,
+      }));
+    } catch (e) {
+      console.error('Falha ao salvar perfil (o navegador pode estar bloqueando armazenamento local):', e);
+    }
+  }
+
+  async function doLogin(){
+    const name = els.username.value.trim();
+    if (!name){
+      els.loginStatus.textContent = 'Digite um nome de usuário para entrar.';
+      els.loginStatus.className = 'panel-status error';
+      return;
+    }
+    els.loginStatus.textContent = 'Carregando perfil…';
+    els.loginStatus.className = 'panel-status';
+
+    state.username = name;
+    state.apiKey = '';
+    state.favorites = [];
+
+    try {
+      const raw = localStorage.getItem(profileKey(name));
+      if (raw) {
+        const data = JSON.parse(raw);
+        state.apiKey = data.apiKey || '';
+        state.favorites = Array.isArray(data.favorites) ? data.favorites : [];
+      }
+    } catch (e) {
+      // perfil novo, ou navegador bloqueando armazenamento local — segue com estado vazio
+    }
+
+    els.loginStatus.textContent = `Conectado como ${name}.`;
+    els.loginStatus.className = 'panel-status ok';
+
+    els.apiKey.value = state.apiKey || '';
+    els.keyPanel.classList.remove('hidden');
+    els.mainApp.classList.remove('hidden');
+
+    if (state.apiKey) {
+      els.keyStatus.textContent = 'Chave carregada do seu perfil.';
+      els.keyStatus.className = 'panel-status ok';
+    } else {
+      els.keyStatus.textContent = '';
+    }
+
+    renderPresets();
+    if (state.apiKey) fetchLive();
+    else setStatus('Conecte sua chave da API para sintonizar os canais.');
+  }
+
+  function doLogout(){
+    state.username = null;
+    state.apiKey = '';
+    state.favorites = [];
+    els.username.value = '';
+    els.apiKey.value = '';
+    els.loginStatus.textContent = '';
+    els.keyStatus.textContent = '';
+    els.keyPanel.classList.add('hidden');
+    els.mainApp.classList.add('hidden');
+    els.player.classList.add('hidden');
+    els.player.innerHTML = '';
+    els.grid.innerHTML = '';
+    setStatus('');
+  }
+
+  function forgetProfile(){
+    if (!state.username) return;
+    if (!confirm('Apagar sua chave de API e seus favoritos salvos neste navegador?')) return;
+    try {
+      localStorage.removeItem(profileKey(state.username));
+    } catch (e) {
+      // nada salvo ainda
+    }
+    doLogout();
+  }
+
+  function renderPresets(){
+    const segments = [FAVORITES_SEGMENT, ...BASE_SEGMENTS.filter(s => s.id !== 'all'), BASE_SEGMENTS[0]];
+    // ordem final desejada: Favoritos, Todos, depois os demais segmentos
+    const ordered = [FAVORITES_SEGMENT, BASE_SEGMENTS[0], ...BASE_SEGMENTS.slice(1)];
+    els.presets.innerHTML = ordered.map(seg => `
+      <button class="preset ${seg.isFavorites ? 'favorites' : ''} ${seg.id === state.segment.id ? 'active' : ''}" data-seg="${seg.id}">
+        <span class="ch">${seg.ch}</span>${seg.label}${seg.isFavorites ? ` (${state.favorites.length})` : ''}
+      </button>
+    `).join('');
+    [...els.presets.querySelectorAll('.preset')].forEach(btn => {
+      btn.addEventListener('click', () => {
+        const all = [FAVORITES_SEGMENT, ...BASE_SEGMENTS];
+        state.segment = all.find(s => s.id === btn.dataset.seg);
+        renderPresets();
+        if (state.apiKey) fetchLive();
+        else setStatus('Conecte sua chave da API para sintonizar os canais.', true);
+      });
+    });
+  }
+
+  function setStatus(msg, isError){
+    els.status.textContent = msg || '';
+    els.status.classList.toggle('error', !!isError);
+  }
+
+  function isFavorite(channelId){
+    return state.favorites.some(f => f.channelId === channelId);
+  }
+
+  function toggleFavorite(channelId, channelTitle){
+    const idx = state.favorites.findIndex(f => f.channelId === channelId);
+    if (idx >= 0) state.favorites.splice(idx, 1);
+    else state.favorites.push({ channelId, channelTitle });
+    persistProfile();
+    renderPresets();
+    [...document.querySelectorAll(`[data-star-for="${channelId}"]`)].forEach(btn => {
+      btn.classList.toggle('active', isFavorite(channelId));
+      btn.textContent = isFavorite(channelId) ? '\u2605' : '\u2606';
+    });
+    if (state.segment.isFavorites) fetchLive();
+  }
+
+  async function fetchLive(){
+    if (!state.apiKey){
+      setStatus('Conecte sua chave da API antes de sintonizar.', true);
+      return;
+    }
+    if (state.segment.isFavorites){
+      return fetchFavoritesLive();
+    }
+
+    state.loading = true;
+    setStatus('Sintonizando transmissões ao vivo…');
+    els.grid.innerHTML = '';
+
+    try {
+      const params = new URLSearchParams({
+        part: 'snippet',
+        type: 'video',
+        eventType: 'live',
+        maxResults: '24',
+        order: 'viewCount',
+        key: state.apiKey,
+      });
+      if (state.segment.category) params.set('videoCategoryId', String(state.segment.category));
+      if (state.query) params.set('q', state.query);
+
+      const searchRes = await fetch(`https://www.googleapis.com/youtube/v3/search?${params.toString()}`);
+      const searchData = await searchRes.json();
+
+      if (!searchRes.ok) {
+        throw new Error(searchData?.error?.message || 'Não foi possível consultar a API do YouTube.');
+      }
+
+      const items = (searchData.items || []).filter(it => it.id && it.id.videoId);
+
+      if (items.length === 0){
+        setStatus('');
+        els.grid.innerHTML = `<div class="empty"><strong>Nenhum sinal encontrado</strong>Tente outro segmento ou ajuste a busca.</div>`;
+        return;
+      }
+
+      const ids = items.map(it => it.id.videoId).join(',');
+      let viewerMap = {};
+      try {
+        const vRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${ids}&key=${state.apiKey}`);
+        const vData = await vRes.json();
+        if (vRes.ok) {
+          (vData.items || []).forEach(v => {
+            const count = v.liveStreamingDetails && v.liveStreamingDetails.concurrentViewers;
+            if (count) viewerMap[v.id] = Number(count);
+          });
+        }
+      } catch (e) { /* contagem é opcional, segue sem ela */ }
+
+      setStatus(`${items.length} transmissões ao vivo em "${state.segment.label}".`);
+      renderGrid(items, viewerMap);
+
+    } catch (err){
+      setStatus(err.message || 'Erro ao buscar canais ao vivo.', true);
+      els.grid.innerHTML = '';
+    } finally {
+      state.loading = false;
+    }
+  }
+
+  async function fetchFavoritesLive(){
+    if (state.favorites.length === 0){
+      setStatus('');
+      els.grid.innerHTML = `<div class="empty"><strong>Nenhum favorito ainda</strong>Clique na estrela de um canal, em qualquer segmento, para adicioná-lo aqui.</div>`;
+      return;
+    }
+    setStatus('Verificando quais favoritos estão ao vivo…');
+    els.grid.innerHTML = '';
+
+    try {
+      const results = await Promise.all(state.favorites.map(async fav => {
+        const params = new URLSearchParams({
+          part: 'snippet', channelId: fav.channelId, eventType: 'live', type: 'video', maxResults: '1', key: state.apiKey,
+        });
+        const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${params.toString()}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error?.message || 'Erro ao consultar favoritos.');
+        return data.items || [];
+      }));
+
+      const items = results.flat().filter(it => it.id && it.id.videoId);
+
+      if (items.length === 0){
+        setStatus(`Nenhum dos seus ${state.favorites.length} favoritos está ao vivo agora.`);
+        els.grid.innerHTML = `<div class="empty"><strong>Tudo quieto por aqui</strong>Nenhum canal favorito está transmitindo neste momento.</div>`;
+        return;
+      }
+
+      const ids = items.map(it => it.id.videoId).join(',');
+      let viewerMap = {};
+      try {
+        const vRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${ids}&key=${state.apiKey}`);
+        const vData = await vRes.json();
+        if (vRes.ok) {
+          (vData.items || []).forEach(v => {
+            const count = v.liveStreamingDetails && v.liveStreamingDetails.concurrentViewers;
+            if (count) viewerMap[v.id] = Number(count);
+          });
+        }
+      } catch (e) {}
+
+      setStatus(`${items.length} de ${state.favorites.length} favoritos ao vivo agora.`);
+      renderGrid(items, viewerMap);
+
+    } catch (err) {
+      setStatus(err.message || 'Erro ao verificar favoritos.', true);
+      els.grid.innerHTML = '';
+    }
+  }
+
+  function formatViewers(n){
+    if (!n) return null;
+    if (n >= 1000) return (n/1000).toFixed(n >= 10000 ? 0 : 1).replace('.0','') + 'k assistindo';
+    return n + ' assistindo';
+  }
+
+  function renderGrid(items, viewerMap){
+    els.grid.innerHTML = items.map(it => {
+      const videoId = it.id.videoId;
+      const snip = it.snippet;
+      const channelId = snip.channelId;
+      const thumb = snip.thumbnails.medium?.url || snip.thumbnails.default?.url;
+      const viewers = formatViewers(viewerMap[videoId]);
+      const fav = isFavorite(channelId);
+      return `
+        <div class="card">
+          <div class="thumb-wrap" data-video="${videoId}" data-title="${escapeHtml(snip.title)}" data-channel="${escapeHtml(snip.channelTitle)}" data-channel-id="${channelId}">
+            <img src="${thumb}" alt="${escapeHtml(snip.title)}" loading="lazy" />
+            <span class="tally"><span class="dot"></span>AO VIVO</span>
+            <button class="star-btn ${fav ? 'active' : ''}" data-star-for="${channelId}" data-channel-title="${escapeHtml(snip.channelTitle)}"
+              title="${fav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}" aria-label="Favoritar canal ${escapeHtml(snip.channelTitle)}">${fav ? '\u2605' : '\u2606'}</button>
+            ${viewers ? `<span class="viewers">${viewers}</span>` : ''}
+          </div>
+          <div class="card-body">
+            <div class="title">${escapeHtml(snip.title)}</div>
+            <div class="channel">${escapeHtml(snip.channelTitle)}</div>
+            <div class="card-actions">
+              <button class="btn-ghost" data-video="${videoId}" data-title="${escapeHtml(snip.title)}" data-channel="${escapeHtml(snip.channelTitle)}">Assistir aqui</button>
+              <a class="btn-outline" href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener">Abrir no YouTube</a>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    [...els.grid.querySelectorAll('.thumb-wrap, .btn-ghost[data-video]')].forEach(el => {
+      el.addEventListener('click', () => openPlayer(el.dataset.video, el.dataset.title, el.dataset.channel));
+    });
+    [...els.grid.querySelectorAll('[data-star-for]')].forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFavorite(btn.dataset.starFor, btn.dataset.channelTitle);
+      });
+    });
+  }
+
+  function openPlayer(videoId, title, channel){
+    const it = { title, channel };
+    els.player.classList.remove('hidden');
+    els.player.innerHTML = `
+      <div class="player-frame">
+        <span class="corner tl"></span><span class="corner tr"></span>
+        <span class="corner bl"></span><span class="corner br"></span>
+        <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" title="${escapeHtml(title)}"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+      <div class="player-meta">
+        <div class="player-info">
+          <h2>${escapeHtml(title)}</h2>
+          <div class="channel">${escapeHtml(channel)}</div>
+        </div>
+        <div class="player-actions">
+          <a class="btn-outline" href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener">Abrir no YouTube</a>
+          <a class="btn-ghost" href="https://www.youtube.com/results?search_query=${encodeURIComponent(channel)}" target="_blank" rel="noopener">Ver conteúdos do canal</a>
+          <button class="btn-close" id="closePlayerBtn">Fechar transmissão</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('closePlayerBtn').addEventListener('click', () => {
+      els.player.classList.add('hidden');
+      els.player.innerHTML = '';
+    });
+    els.player.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  els.loginBtn.addEventListener('click', doLogin);
+  els.username.addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+  els.logoutBtn.addEventListener('click', doLogout);
+  els.forgetBtn.addEventListener('click', forgetProfile);
+
+  els.saveKeyBtn.addEventListener('click', () => {
+    const val = els.apiKey.value.trim();
+    if (!val){
+      els.keyStatus.textContent = 'Cole uma chave válida para conectar.';
+      els.keyStatus.className = 'panel-status error';
+      return;
+    }
+    state.apiKey = val;
+    persistProfile();
+    els.keyStatus.textContent = 'Conectado — pronto para sintonizar.';
+    els.keyStatus.className = 'panel-status ok';
+    fetchLive();
+  });
+
+  els.searchBtn.addEventListener('click', () => {
+    state.query = els.searchInput.value.trim();
+    if (state.apiKey) fetchLive(); else setStatus('Conecte sua chave da API antes de buscar.', true);
+  });
+  els.searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') els.searchBtn.click();
+  });
+})();
+</script>
+</body>
+</html>

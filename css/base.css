@@ -1,0 +1,79 @@
+/* Variáveis do tema padrão — "Regie Escura", sala de controle de transmissão */
+:root, [data-theme="regie"] {
+  --bg: #0B0D10;
+  --panel: #14171C;
+  --panel-2: #1B1F26;
+  --border: #262B33;
+  --text: #EDEFF2;
+  --muted: #8A93A3;
+  --live: #FF3B30;
+  --live-glow: rgba(255, 59, 48, 0.35);
+  --amber: #FFB020;
+  --amber-contrast: #1a1300;
+  --teal: #34D8C6;
+  --radius: 10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color .2s ease, color .2s ease;
+}
+
+.hidden { display: none !important; }
+
+.board {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 20px 80px;
+}
+
+/* ---- masthead ---- */
+.masthead {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 18px;
+  margin-bottom: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.tally-brand {
+  font-family: 'Big Shoulders Display', sans-serif;
+  font-weight: 800;
+  font-size: clamp(32px, 6vw, 52px);
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  line-height: 1;
+}
+.tally-brand .accent { color: var(--live); }
+
+.tally-dot {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--live);
+  box-shadow: 0 0 0 0 var(--live-glow);
+  flex-shrink: 0;
+  animation: pulse 1.6s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 var(--live-glow); }
+  70% { box-shadow: 0 0 0 14px rgba(255, 59, 48, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+}
+
+.masthead-text { max-width: 640px; }
+.tagline { color: var(--muted); margin: 8px 0 0; font-size: 15px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tally-dot { animation: none; }
+}

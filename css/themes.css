@@ -1,0 +1,39 @@
+/* Cada tema só redefine as variáveis de cor do base.css — nenhum outro
+   arquivo CSS precisa saber que temas existem. */
+
+/* Estúdio Claro — mesma regie, luz do dia */
+[data-theme="claro"] {
+  --bg: #EEF1F4;
+  --panel: #FFFFFF;
+  --panel-2: #E4E8ED;
+  --border: #D3D9E0;
+  --text: #12151A;
+  --muted: #5B6472;
+  --live: #E1352B;
+  --live-glow: rgba(225, 53, 43, 0.25);
+  --amber: #C97A00;
+  --amber-contrast: #FFFFFF;
+  --teal: #0E8C7C;
+}
+
+/* Alto Contraste — acessibilidade, preto/branco/amarelo */
+[data-theme="contraste"] {
+  --bg: #000000;
+  --panel: #000000;
+  --panel-2: #0A0A0A;
+  --border: #FFFFFF;
+  --text: #FFFFFF;
+  --muted: #E0E0E0;
+  --live: #FF3B30;
+  --live-glow: rgba(255, 59, 48, 0.5);
+  --amber: #FFD400;
+  --amber-contrast: #000000;
+  --teal: #00E5FF;
+  --radius: 6px;
+}
+[data-theme="contraste"] .card,
+[data-theme="contraste"] .config-panel,
+[data-theme="contraste"] .player,
+[data-theme="contraste"] .preset {
+  border-width: 2px;
+}

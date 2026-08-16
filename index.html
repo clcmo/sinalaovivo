@@ -1,24 +1,27 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sinal Ao Vivo — Canais do YouTube por segmento</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sinal Ao Vivo — Canais do YouTube por segmento</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/themes.css">
-<link rel="stylesheet" href="css/components.css">
+  <!-- Estilos da aplicação -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/components.css">
 
-<!-- Google Identity Services: login (OIDC) + autorização de acesso à API (OAuth2) -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- SDK oficial do Google Identity Services: login (OIDC) + autorização OAuth2 -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 <div class="board">
 
+  <!-- CABEÇALHO -->
   <header class="masthead">
     <div class="masthead-text">
       <div class="tally-brand"><span class="tally-dot"></span>SINAL<span class="accent">AO&nbsp;VIVO</span></div>
@@ -27,7 +30,7 @@
     <nav class="theme-switcher" id="themeSwitcher" aria-label="Trocar tema"></nav>
   </header>
 
-  <!-- 1. LOGIN -->
+  <!-- 1. PAINEL DE LOGIN -->
   <section class="config-panel" id="loginPanel">
     <h2 class="section-label">1. Identificação</h2>
 
@@ -48,14 +51,14 @@
     <div id="loginStatus" class="panel-status"></div>
   </section>
 
-  <!-- perfil logado -->
+  <!-- PERFIL LOGADO -->
   <div class="profile-chip hidden" id="profileChip">
     <img id="profileAvatar" src="" alt="" class="hidden" />
     <div class="profile-name" id="profileName"></div>
     <button class="btn-ghost small" id="logoutBtn">Trocar de usuário</button>
   </div>
 
-  <!-- 2. CREDENCIAL DA API -->
+  <!-- 2. CREDENCIAL DA API DO YOUTUBE -->
   <section class="config-panel hidden" id="keyPanel">
     <h2 class="section-label">2. Conectar à API do YouTube</h2>
     <div class="key-row">
@@ -73,7 +76,7 @@
     <p><button class="link-muted" id="forgetBtn">Apagar meus dados salvos neste navegador</button></p>
   </section>
 
-  <!-- 3. APP -->
+  <!-- 3. CONTEÚDO PRINCIPAL (APP) -->
   <div id="mainApp" class="hidden">
     <nav class="presets" id="presets" aria-label="Segmentos de canais"></nav>
 
@@ -91,6 +94,7 @@
 
 </div>
 
+<!-- Script principal carregado como Módulo ES6 -->
 <script type="module" src="js/app.js"></script>
 </body>
 </html>

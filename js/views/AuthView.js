@@ -1,8 +1,7 @@
 /**
  * AuthView: mostra/esconde os blocos de login e credencial, e desenha
- * o chip de perfil. Não fala com o Google nem com a YouTube API —
- * só recebe dados prontos (nome, e-mail, foto) e dispara callbacks
- * quando a pessoa interage.
+ * o chip de perfil. Não fala com a YouTube API — só recebe dados prontos
+ * (nome, e-mail, foto) e dispara callbacks quando a pessoa interage.
  */
 export class AuthView {
   constructor() {
@@ -45,6 +44,20 @@ export class AuthView {
 
     this.el.logoutBtn.addEventListener('click', onLogout);
     this.el.forgetBtn.addEventListener('click', onForget);
+  }
+
+  renderGoogleButton(clientId, onSuccessCallback) {
+    if (window.google && google.accounts && google.accounts.id) {
+      google.accounts.id.initialize({
+        client_id: clientId,
+        callback: onSuccessCallback
+      });
+
+      google.accounts.id.renderButton(
+        this.el.googleButtonContainer,
+        { theme: 'outline', size: 'large', locale: 'pt-BR' }
+      );
+    }
   }
 
   showGoogleUnavailable() {

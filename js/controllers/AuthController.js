@@ -24,108 +24,95 @@ function decodeJwt(token) {
  * Quem não quiser passar pelo OAuth pode entrar como convidado (nome
  * digitado) e colar uma chave de API manualmente.
  */
+
 export class AuthController {
-  constructor(model, view, { onCredentialReady }) {
-    this.model = model;
-    this.view = view;
-    this.onCredentialReady = onCredentialReady;
-    this.tokenClient = null;
+  constructor(authModel, authView) {
+    this.model = authModel;
+    this.view = authView;
 
     this.view.bind({
-      onToggleGuestPanel: () => this.view.toggleGuestPanel(),
-      onToggleManualKey: () => this.view.toggleManualKeyPanel(),
-      onGuestSubmit: username => this._loginGuest(username),
+      onGuestSubmit: name => this._loginAsGuest(name),
       onManualKeySave: key => this._saveManualKey(key),
-      onAuthorizeYoutube: () => this._requestAccessToken(),
+      onAuthorizeYoutube: () => this._authorizeYoutube(),
       onLogout: () => this._logout(),
       onForget: () => this._forget(),
+      onToggleGuestPanel: () => this.view.toggleGuestPanel(),
+      onToggleManualKey: () => this.view.toggleManualKeyPanel(),
     });
-
-    this._initGoogle();
   }
 
-  _initGoogle() {
-    if (!window.google?.accounts || CONFIG.GOOGLE_CLIENT_ID.includes('SEU_CLIENT_ID')) {
+  start() {
+    if (!CONFIG.GOOGLE_CLIENT_ID || CONFIG.GOOGLE_CLIENT_ID.includes('SEU_CLIENT_ID')) {
       this.view.showGoogleUnavailable();
-      return;
+    } else {
+      this._initGoogleButton();
     }
 
-    google.accounts.id.initialize({
-      client_id: CONFIG.GOOGLE_CLIENT_ID,
-      callback: response => this._handleGoogleLogin(response),
+    if (this.model.hasSession()) {
+      this.view.renderProfile(this.model.getIdentity());
+      this.view.prefillManualKey(this.model.getApiKey());
+    } else {
+      this.view.reset();
+    }
+  }
+
+  _initGoogleButton() {
+    const render = () => {
+      if (window.google && google.accounts && google.accounts.id) {
+        this.view.renderGoogleButton(CONFIG.GOOGLE_CLIENT_ID, response => this._handleCredentialResponse(response));
+      } else {
+        setTimeout(render, 100); // Tenta novamente até a biblioteca GSI estar pronta
+      }
+    };
+    render();
+  }
+
+  _handleCredentialResponse(response) {
+    if (response.credential) {
+      // Decodifica o JWT retornado pelo Google Identity Services
+      const payload = JSON.parse(atob(response.credential.split('.')[1]));
+      this.model.loginGoogle({
+        name: payload.name,
+        email: payload.email,
+        picture: payload.picture,
+      });
+      this.view.renderProfile(this.model.getIdentity());
+    }
+  }
+
+  _loginAsGuest(name) {
+    if (!name) {
+      this.view.guestError('Informe um nome de usuário.');
+      return;
+    }
+    this.model.loginGuest(name);
+    this.view.renderProfile(this.model.getIdentity());
+  }
+
+  _authorizeYoutube() {
+    this.model.requestOAuthToken(() => {
+      this.view.setKeyStatus('Acesso ao YouTube autorizado com sucesso!');
     });
-    google.accounts.id.renderButton(this.view.googleButtonContainer, {
-      theme: 'filled_black', size: 'large', shape: 'pill', text: 'signin_with', locale: 'pt-BR',
-    });
-
-    this.tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: CONFIG.GOOGLE_CLIENT_ID,
-      scope: CONFIG.YOUTUBE_SCOPE,
-      callback: response => this._handleAccessToken(response),
-    });
-  }
-
-  _handleGoogleLogin(response) {
-    const payload = decodeJwt(response.credential);
-    this.model.loginGoogle({ email: payload.email, name: payload.name, picture: payload.picture });
-    this._afterLogin();
-    // pede a credencial da API automaticamente, na sequência do login
-    this._requestAccessToken();
-  }
-
-  _loginGuest(username) {
-    if (!username) {
-      this.view.guestError('Digite um nome para entrar.');
-      return;
-    }
-    this.model.loginGuest(username);
-    this._afterLogin();
-  }
-
-  _afterLogin() {
-    this.view.renderProfile(this.model.identity);
-    if (this.model.apiKey) this.view.prefillManualKey(this.model.apiKey);
-    if (this.model.credential()) this.onCredentialReady();
-  }
-
-  _requestAccessToken() {
-    if (!this.tokenClient) {
-      this.view.setKeyStatus('Login com Google não configurado neste site — use a chave manual abaixo.', true);
-      return;
-    }
-    this.tokenClient.requestAccessToken({ prompt: '' });
-  }
-
-  _handleAccessToken(response) {
-    if (response.error) {
-      this.view.setKeyStatus(
-        'Não foi possível autorizar o acesso ao YouTube (' + response.error + '). Você pode usar a chave manual abaixo.',
-        true
-      );
-      return;
-    }
-    this.model.setAccessToken(response.access_token, response.expires_in);
-    this.view.setKeyStatus('Autorizado com sua conta Google — pronto para sintonizar.', false);
-    this.onCredentialReady();
   }
 
   _saveManualKey(key) {
     if (!key) {
-      this.view.setKeyStatus('Cole uma chave válida para conectar.', true);
+      this.view.setKeyStatus('Cole uma chave de API válida.', true);
       return;
     }
-    this.model.setApiKey(key);
-    this.view.setKeyStatus('Chave manual conectada — pronto para sintonizar.', false);
-    this.onCredentialReady();
+    this.model.saveApiKey(key);
+    this.view.setKeyStatus('Chave salva com sucesso!');
   }
 
   _logout() {
     this.model.logout();
     this.view.reset();
+    this.start();
   }
 
   _forget() {
-    this.model.forget();
+    this.model.clearAll();
     this.view.reset();
+    this.start();
   }
 }

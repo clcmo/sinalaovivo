@@ -1,109 +1,108 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sinal Ao Vivo — Canais do YouTube por segmento</title>
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <!-- Estilos da aplicação -->
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/themes.css">
-  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="./assets/css/base.css">
+  <link rel="stylesheet" href="./assets/css/components.css">
+  <link rel="stylesheet" href="./assets/css/themes.css">
 
   <!-- SDK oficial do Google Identity Services: login (OIDC) + autorização OAuth2 -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
+
 <body>
-<div class="board">
+  <div class="board">
 
-  <!-- CABEÇALHO -->
-  <header class="masthead">
-    <div class="masthead-text">
-      <div class="tally-brand"><span class="tally-dot"></span>SINAL<span class="accent">AO&nbsp;VIVO</span></div>
-      <p class="tagline">Canais do YouTube transmitindo agora, organizados por segmento. Entre com sua conta Google para salvar favoritos.</p>
+    <header class="masthead">
+      <div class="masthead-text">
+        <div class="tally-brand"><span class="tally-dot"></span>SINAL<span class="accent">AO&nbsp;VIVO</span></div>
+        <p class="tagline">Canais do YouTube transmitindo agora, organizados por segmento. Entre com sua conta Google
+          para salvar favoritos.</p>
+      </div>
+      <nav class="theme-switcher" id="themeSwitcher" aria-label="Trocar tema"></nav>
+    </header>
+
+    <section class="config-panel" id="loginPanel">
+      <h2 class="section-label">1. Identificação</h2>
+
+      <div id="googleButtonContainer"></div>
+      <p id="googleUnavailable" class="google-unavailable hidden">
+        Login com Google não está configurado neste site (precisa do Client ID em <code>js/config.js</code>). Use a
+        opção abaixo.
+      </p>
+
+      <p class="or-divider">ou</p>
+      <button class="link-muted" id="guestToggle">Entrar sem conta Google</button>
+
+      <div class="key-row hidden" id="guestPanel" style="margin-top:10px;">
+        <input id="guestUsername" placeholder="Seu nome de usuário" autocomplete="off" />
+        <button id="guestSubmit">Entrar</button>
+      </div>
+
+      <p class="hint">O login só identifica onde ficam guardados, neste navegador, os seus canais favoritos e — se você
+        não usar sua conta Google — a chave de API.</p>
+      <div id="loginStatus" class="panel-status"></div>
+    </section>
+
+    <div class="profile-chip hidden" id="profileChip">
+      <img id="profileAvatar" src="" alt="" class="hidden" />
+      <div class="profile-name" id="profileName"></div>
+      <button class="btn-ghost small" id="logoutBtn">Trocar de usuário</button>
     </div>
-    <nav class="theme-switcher" id="themeSwitcher" aria-label="Trocar tema"></nav>
-  </header>
 
-  <!-- 1. PAINEL DE LOGIN -->
-  <section class="config-panel" id="loginPanel">
-    <h2 class="section-label">1. Identificação</h2>
+    <section class="config-panel hidden" id="keyPanel">
+      <h2 class="section-label">2. Conectar à API do YouTube</h2>
+      <div class="key-row">
+        <button id="authorizeYoutubeBtn">Autorizar acesso ao YouTube com o Google</button>
+      </div>
+      <p class="hint">Pede permissão de leitura na sua conta Google (escopo <code>youtube.readonly</code>) para
+        consultar transmissões ao vivo em seu nome — sem precisar colar nenhuma chave.</p>
 
-    <div id="googleButtonContainer"></div>
-    <p id="googleUnavailable" class="google-unavailable hidden">
-      Login com Google não está configurado neste site (falta o Client ID em <code>js/config.js</code>). Use a opção abaixo.
-    </p>
+      <p style="margin-top:12px;"><button class="link-muted" id="manualKeyToggle">Prefiro colar uma chave de API
+          manualmente</button></p>
+      <div class="key-row hidden" id="manualKeyPanel">
+        <input type="password" id="apiKey" placeholder="Cole sua chave da YouTube Data API v3" autocomplete="off" />
+        <button id="saveKeyBtn">Conectar</button>
+      </div>
 
-    <p class="or-divider">ou</p>
-    <button class="link-muted" id="guestToggle">Entrar sem conta Google</button>
+      <div id="keyStatus" class="panel-status"></div>
+      <p><button class="link-muted" id="forgetBtn">Apagar meus dados salvos neste navegador</button></p>
+    </section>
 
-    <div class="key-row hidden" id="guestPanel" style="margin-top:10px;">
-      <input id="guestUsername" placeholder="Seu nome de usuário" autocomplete="off" />
-      <button id="guestSubmit">Entrar</button>
+    <div id="mainApp" class="hidden">
+      <nav class="presets" id="presets" aria-label="Segmentos de canais"></nav>
+
+      <div class="tuner">
+        <input type="text" id="searchInput" placeholder="Buscar canal ou tema dentro do segmento (opcional)" />
+        <button id="searchBtn">Sintonizar</button>
+      </div>
+
+      <div id="status" class="status" aria-live="polite"></div>
+
+      <section id="player" class="player hidden"></section>
+
+      <section id="grid" class="grid"></section>
     </div>
 
-    <p class="hint">O login só identifica onde ficam guardados, neste navegador, os seus canais favoritos e — se você não usar sua conta Google — a chave de API.</p>
-    <div id="loginStatus" class="panel-status"></div>
-  </section>
+    <footer class="app-footer">
+      <p>&copy; 2026 Sinal Ao Vivo. Todos os direitos reservados.</p>
+      <nav class="footer-links">
+        <a href="privacy.html" target="_blank">Política de Privacidade</a> |
+        <a href="terms.html" target="_blank">Termos de Serviço</a>
+      </nav>
+    </footer>
 
-  <!-- PERFIL LOGADO -->
-  <div class="profile-chip hidden" id="profileChip">
-    <img id="profileAvatar" src="" alt="" class="hidden" />
-    <div class="profile-name" id="profileName"></div>
-    <button class="btn-ghost small" id="logoutBtn">Trocar de usuário</button>
   </div>
 
-  <!-- 2. CREDENCIAL DA API DO YOUTUBE -->
-  <section class="config-panel hidden" id="keyPanel">
-    <h2 class="section-label">2. Conectar à API do YouTube</h2>
-    <div class="key-row">
-      <button id="authorizeYoutubeBtn">Autorizar acesso ao YouTube com o Google</button>
-    </div>
-    <p class="hint">Pede permissão de leitura na sua conta Google (escopo <code>youtube.readonly</code>) para consultar transmissões ao vivo em seu nome — sem precisar colar nenhuma chave.</p>
-
-    <p style="margin-top:12px;"><button class="link-muted" id="manualKeyToggle">Prefiro colar uma chave de API manualmente</button></p>
-    <div class="key-row hidden" id="manualKeyPanel">
-      <input type="password" id="apiKey" placeholder="Cole sua chave da YouTube Data API v3" autocomplete="off" />
-      <button id="saveKeyBtn">Conectar</button>
-    </div>
-
-    <div id="keyStatus" class="panel-status"></div>
-    <p><button class="link-muted" id="forgetBtn">Apagar meus dados salvos neste navegador</button></p>
-  </section>
-
-  <!-- 3. CONTEÚDO PRINCIPAL (APP) -->
-  <div id="mainApp" class="hidden">
-    <nav class="presets" id="presets" aria-label="Segmentos de canais"></nav>
-
-    <div class="tuner">
-      <input type="text" id="searchInput" placeholder="Buscar canal ou tema dentro do segmento (opcional)" />
-      <button id="searchBtn">Sintonizar</button>
-    </div>
-
-    <div id="status" class="status" aria-live="polite"></div>
-
-    <section id="player" class="player hidden"></section>
-
-    <section id="grid" class="grid"></section>
-  </div>
-
-  <!-- RODAPÉ DE NAVEGAÇÃO E TERMOS -->
-  <footer class="app-footer">
-    <p>&copy; 2026 Sinal Ao Vivo. Todos os direitos reservados.</p>
-    <nav class="footer-links">
-      <a href="privacy.html" target="_blank">Política de Privacidade</a> | 
-      <a href="terms.html" target="_blank">Termos de Serviço</a>
-    </nav>
-  </footer>
-
-</div>
-
-<!-- Script principal carregado como Módulo ES6 -->
-<script type="module" src="js/app.js"></script>
+  <script type="module" src="./assets/js/app.js"></script>
 </body>
+
 </html>

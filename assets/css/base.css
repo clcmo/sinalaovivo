@@ -1,3 +1,6 @@
+/* Importação de fontes externas */
+@import url("https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap");
+
 /* Variáveis do tema padrão — "Regie Escura", sala de controle de transmissão */
 :root, [data-theme="regie"] {
   --bg: #0B0D10;

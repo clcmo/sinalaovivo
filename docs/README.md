@@ -8,25 +8,26 @@ Construído em **arquitetura MVC** com HTML + JavaScript puro (ES Modules, sem f
 
 ```
 index.html          ← só estrutura (HTML), nenhuma lógica
-css/
-├── base.css         ← reset, tipografia, layout, variáveis do tema padrão
-├── themes.css        ← só redefine as variáveis de cor por tema
-└── components.css    ← estilo de cada componente (cards, painéis, player...)
-js/
-├── config.js          ← configuração (Client ID do Google)
-├── app.js             ← ponto de entrada: instancia tudo e liga as peças
-├── models/            ← dados e regras de negócio, sem tocar em DOM
-│   ├── ThemeModel.js    → tema ativo + persistência
-│   ├── AuthModel.js     → identidade, credencial de API, favoritos
-│   └── ChannelModel.js  → toda a comunicação com a YouTube Data API
-├── views/             ← só DOM: desenham telas e disparam callbacks
-│   ├── ThemeView.js
-│   ├── AuthView.js
-│   └── ChannelView.js
-└── controllers/       ← ligam Model e View, tratam eventos
-    ├── ThemeController.js
-    ├── AuthController.js
-    └── ChannelController.js
+├── assets/  
+   ├──   css/
+      ├── base.css         ← reset, tipografia, layout, variáveis do tema padrão
+      ├── themes.css        ← só redefine as variáveis de cor por tema  
+      └── components.css    ← estilo de cada componente (cards, painéis, player...)
+   └── js/
+      ├── config.js          ← configuração (Client ID do Google)
+      ├── app.js             ← ponto de entrada: instancia tudo e liga as peças
+      ├── models/            ← dados e regras de negócio, sem tocar em DOM
+      │   ├── ThemeModel.js    → tema ativo + persistência
+      │   ├── AuthModel.js     → identidade, credencial de API, favoritos
+      │   └── ChannelModel.js  → toda a comunicação com a YouTube Data API
+      ├── views/             ← só DOM: desenham telas e disparam callbacks
+      │   ├── ThemeView.js
+      │   ├── AuthView.js
+      │   └── ChannelView.js
+      └── controllers/       ← ligam Model e View, tratam eventos
+         ├── ThemeController.js
+         ├── AuthController.js
+         └── ChannelController.js
 ```
 
 Nenhuma View importa um Model, e nenhum Model toca em `document`. Só os Controllers conhecem as duas pontas — é o ponto mais fácil de mostrar em aula: "o que acontece se eu trocar só a View de tema, mantendo o Model?".
@@ -110,4 +111,4 @@ Não existe servidor próprio nem banco de dados. Tokens de acesso do Google viv
 
 ## Licença
 
-MIT — veja [LICENSE](./LICENSE).
+MIT — veja [LICENCE](./LICENCE).

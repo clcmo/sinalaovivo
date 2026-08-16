@@ -1,3 +1,6 @@
+Aqui está a estrutura do `index.html` reunindo a interface completa do aplicativo juntamente com o cabeçalho, os painéis de configuração/login, a grade do app e os links de **Política de Privacidade** e **Termos de Serviço** no rodapé:
+
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -92,9 +95,20 @@
     <section id="grid" class="grid"></section>
   </div>
 
+  <!-- RODAPÉ DE NAVEGAÇÃO E TERMOS -->
+  <footer class="app-footer">
+    <p>&copy; 2026 Sinal Ao Vivo. Todos os direitos reservados.</p>
+    <nav class="footer-links">
+      <a href="privacy.html" target="_blank">Política de Privacidade</a> | 
+      <a href="terms.html" target="_blank">Termos de Serviço</a>
+    </nav>
+  </footer>
+
 </div>
 
 <!-- Script principal carregado como Módulo ES6 -->
 <script type="module" src="js/app.js"></script>
 </body>
 </html>
+
+```

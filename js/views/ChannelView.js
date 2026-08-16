@@ -12,8 +12,7 @@ function formatViewers(n) {
 
 /**
  * ChannelView: desenha o quadro de segmentos, a busca, a grade de cards
- * e o player. Recebe listas prontas e dispara callbacks nos cliques —
- * não decide o que buscar nem guarda estado de favoritos.
+ * e o player.
  */
 export class ChannelView {
   constructor() {
@@ -40,7 +39,7 @@ export class ChannelView {
 
   renderPresets(orderedSegments, currentId, favoritesCount) {
     this.el.presets.innerHTML = orderedSegments.map(seg => `
-      <button class="preset ${seg.isFavorites ? 'favorites' : ''} ${seg.id === currentId ? 'active' : ''}" data-seg="${seg.id}">
+      <button class="preset ${seg.isFavorites ? 'favorites' : ''} ${seg.isCurated ? 'curated' : ''} ${seg.id === currentId ? 'active' : ''}" data-seg="${seg.id}">
         <span class="ch">${seg.ch}</span>${seg.label}${seg.isFavorites ? ` (${favoritesCount})` : ''}
       </button>
     `).join('');
@@ -107,6 +106,7 @@ export class ChannelView {
     [...document.querySelectorAll(`[data-star-for="${channelId}"]`)].forEach(btn => {
       btn.classList.toggle('active', isFav);
       btn.textContent = isFav ? '\u2605' : '\u2606';
+      btn.title = isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos';
     });
   }
 

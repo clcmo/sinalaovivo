@@ -47,18 +47,21 @@ export class AuthView {
   }
 
   renderGoogleButton(clientId, onSuccessCallback) {
-    if (window.google && google.accounts && google.accounts.id) {
-      google.accounts.id.initialize({
-        client_id: clientId,
-        callback: onSuccessCallback
-      });
+  if (window.google && google.accounts && google.accounts.id) {
+    this.el.googleButtonContainer.innerHTML = ''; // Limpa estado anterior
 
-      google.accounts.id.renderButton(
-        this.el.googleButtonContainer,
-        { theme: 'outline', size: 'large', locale: 'pt-BR' }
-      );
-    }
+    google.accounts.id.initialize({
+      client_id: clientId,
+      callback: onSuccessCallback,
+      auto_select: false
+    });
+
+    google.accounts.id.renderButton(
+      this.el.googleButtonContainer,
+      { theme: 'outline', size: 'large', locale: 'pt-BR', width: '100%' }
+    );
   }
+}
 
   showGoogleUnavailable() {
     this.el.googleUnavailable.classList.remove('hidden');

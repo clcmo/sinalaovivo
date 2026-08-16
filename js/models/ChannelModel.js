@@ -1,15 +1,24 @@
 const API_BASE = 'https://www.googleapis.com/youtube/v3';
 
+// Lista de canais de grande relevância (CazéTV, Dia TV, TV Cultura, MTV Brasil, etc.)
+export const RELEVANT_CHANNELS = [
+  { id: 'UC_IE-06G4R8qTh1Uef1eimw', name: 'CazéTV' },[cite: 1]
+  { id: 'UC3p-fmsP6fRByXJ9S9G8hDA', name: 'Dia TV' },[cite: 1]
+  { id: 'UC35_B-Q1A1c-1tI2J0C--A', name: 'TV Cultura' },[cite: 1]
+  { id: 'UC2y7J_24n8N_J8B-4R42YyA', name: 'MTV Brasil' },[cite: 1]
+];
+
 export const SEGMENTS = [
-  { id: 'all',   ch: 'TODOS', label: 'Todos os canais',       category: null },
-  { id: 'games', ch: '01',    label: 'Jogos',                 category: 20 },
-  { id: 'music', ch: '02',    label: 'Música',                category: 10 },
-  { id: 'news',  ch: '03',    label: 'Notícias',              category: 25 },
-  { id: 'sport', ch: '04',    label: 'Esportes',              category: 17 },
-  { id: 'edu',   ch: '05',    label: 'Educação',              category: 27 },
-  { id: 'tech',  ch: '06',    label: 'Tecnologia',            category: 28 },
-  { id: 'ent',   ch: '07',    label: 'Entretenimento',        category: 24 },
-  { id: 'style', ch: '08',    label: 'Estilo & Como Fazer',   category: 26 },
+  { id: 'all',     ch: 'TODOS', label: 'Todos os canais',        category: null },
+  { id: 'curated', ch: '00',    label: 'Canais Destaque',        category: null, isCurated: true },
+  { id: 'games',   ch: '01',    label: 'Jogos',                  category: 20 },
+  { id: 'music',   ch: '02',    label: 'Música',                 category: 10 },
+  { id: 'news',    ch: '03',    label: 'Notícias',               category: 25 },
+  { id: 'sport',   ch: '04',    label: 'Esportes',               category: 17 },
+  { id: 'edu',     ch: '05',    label: 'Educação',               category: 27 },
+  { id: 'tech',    ch: '06',    label: 'Tecnologia',             category: 28 },
+  { id: 'ent',     ch: '07',    label: 'Entretenimento',         category: 24 },
+  { id: 'style',   ch: '08',    label: 'Estilo & Como Fazer',    category: 26 },
 ];
 
 export const FAVORITES_SEGMENT = { id: 'favorites', ch: '\u2605', label: 'Favoritos', category: null, isFavorites: true };
@@ -35,9 +44,7 @@ async function callApi(path, params, credential) {
 }
 
 /**
- * ChannelModel: só sabe falar com a YouTube Data API v3. Recebe a credencial
- * (token OAuth ou chave de API) pronta e devolve dados já filtrados — nunca
- * toca em DOM nem sabe o que é um "segmento" visualmente.
+ * ChannelModel: comunicação direta com a YouTube Data API v3.
  */
 export class ChannelModel {
   async searchLive({ credential, category, query, maxResults = 24 }) {
@@ -46,8 +53,11 @@ export class ChannelModel {
       type: 'video',
       eventType: 'live',
       maxResults: String(maxResults),
-      order: 'viewCount',
+      order: 'viewCount', // Traz primeiro as transmissões com maior audiência
+      regionCode: 'BR', // Afunila os resultados para o Brasil
+      relevanceLanguage: 'pt', // Prioriza o idioma português
     });
+
     if (category) params.set('videoCategoryId', String(category));
     if (query) params.set('q', query);
 
@@ -67,6 +77,15 @@ export class ChannelModel {
     return data.items || [];
   }
 
+  // Busca simultânea de transmissões ao vivo para a lista de canais em destaque
+  async fetchCuratedLive({ credential, channels = RELEVANT_CHANNELS }) {
+    const promises = channels.map(ch =>
+      this.searchLiveByChannel({ credential, channelId: ch.id }).catch(() => [])
+    );
+    const results = await Promise.all(promises);
+    return results.flat().filter(it => it.id && it.id.videoId);
+  }
+
   async fetchViewerCounts({ credential, videoIds }) {
     if (!videoIds.length) return {};
     const params = new URLSearchParams({ part: 'liveStreamingDetails', id: videoIds.join(',') });
@@ -79,7 +98,7 @@ export class ChannelModel {
       });
       return map;
     } catch (e) {
-      return {}; // contagem de espectadores é só um extra, nunca deve travar a busca
+      return {};
     }
   }
 }

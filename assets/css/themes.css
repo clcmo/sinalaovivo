@@ -1,0 +1,137 @@
+/* ==========================================================================
+   themes.css — Definição dos 3 Temas do Sinal ao Vivo
+   Cada tema reatribui apenas as variáveis de design tokens.
+   ========================================================================== */
+
+/* 1. Regie Escura (Padrão e Fallback) */
+:root,
+[data-theme="regie"] {
+  --bg: #12151A;
+  --panel: #1A1E24;
+  --panel-2: #242932;
+  --border: #2E3541;
+  --text: #F0F3F6;
+  --muted: #8B95A5;
+  --live: #FF3B30;
+  --live-glow: rgba(255, 59, 48, 0.35);
+  --amber: #F5A623;
+  --amber-contrast: #000000;
+  --teal: #14B8A6;
+  --link: #4F9CF9;
+  --link-hover: #7AB4FF;
+  --link-visited: #C084FC;
+}
+
+/* 2. Estúdio Claro — mesma regie, luz do dia */
+[data-theme="claro"] {
+  --bg: #EEF1F4;
+  --panel: #FFFFFF;
+  --panel-2: #E4E8ED;
+  --border: #D3D9E0;
+  --text: #12151A;
+  --muted: #5B6472;
+  --live: #E1352B;
+  --live-glow: rgba(225, 53, 43, 0.25);
+  --amber: #C97A00;
+  --amber-contrast: #FFFFFF;
+  --teal: #0E8C7C;
+  --link: #0056B3;
+  --link-hover: #003366;
+  --link-visited: #6B21A8;
+}
+
+/* 3. Alto Contraste — acessibilidade, preto/branco/amarelo */
+[data-theme="contraste"] {
+  --bg: #000000;
+  --panel: #000000;
+  --panel-2: #0A0A0A;
+  --border: #FFFFFF;
+  --text: #FFFFFF;
+  --muted: #E0E0E0;
+  --live: #FF3B30;
+  --live-glow: rgba(255, 59, 48, 0.5);
+  --amber: #FFD400;
+  --amber-contrast: #000000;
+  --teal: #00E5FF;
+  --link: #FFFF00;
+  --link-hover: #00FFFF;
+  --link-visited: #FF00FF;
+  --radius: 6px;
+}
+
+[data-theme="contraste"] .card,
+[data-theme="contraste"] .config-panel,
+[data-theme="contraste"] .player,
+[data-theme="contraste"] .preset {
+  border-width: 2px;
+}
+
+/* ==========================================================================
+   Legibilidade Global de Links
+   ========================================================================== */
+
+a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  font-weight: 500;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+a:hover {
+  color: var(--link-hover);
+  text-decoration-thickness: 2px;
+}
+
+a:visited {
+  color: var(--link-visited);
+}
+
+a:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ==========================================================================
+   Estilização da Nav Theme Switcher
+   ========================================================================== */
+
+nav.theme-switcher {
+  display: inline-flex;
+  gap: 4px;
+  background-color: var(--panel-2);
+  padding: 4px;
+  border-radius: var(--radius, 8px);
+  border: 1px solid var(--border);
+}
+
+nav.theme-switcher button {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid transparent;
+  padding: 6px 12px;
+  border-radius: calc(var(--radius, 8px) - 2px);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+nav.theme-switcher button:hover {
+  color: var(--text);
+  background-color: var(--panel);
+}
+
+nav.theme-switcher button[aria-pressed="true"] {
+  background-color: var(--panel);
+  color: var(--text);
+  border-color: var(--teal);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+nav.theme-switcher button:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}

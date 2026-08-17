@@ -1,0 +1,42 @@
+name: Atualizar Dependências do Projeto
+run-name: ${{ github.actor }} está atualizando as dependências do projeto
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Roda todo dia às 2h UTC
+  workflow_dispatch:      # Permite disparo manual
+
+permissions:
+  contents: write
+
+jobs:
+  dependency-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24.10.0'
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Verificar dependências desatualizadas
+        run: npm outdated || true # não falha o job só por existir atualização disponível
+
+      - name: Atualizar dependências
+        run: npm update
+
+      - name: Commitar e enviar, se algo mudou
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- package-lock.json package.json; then
+            echo "Nenhuma dependência mudou — nada para commitar."
+          else
+            git commit -am "chore(deps): atualização automática de dependências"
+            git push
+          fi

@@ -1,0 +1,27 @@
+{
+  "name": "sinalaovivo",
+  "version": "0.0.0-development",
+  "description": "Sinal Ao Vivo — interface web MVC que agrega transmissões ao vivo do YouTube por segmento, com login Google e troca de tema via CSS.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clcmo/sinalaovivo.git"
+  },
+  "author": "Camila <milla@apreendendo.blog>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "release": "semantic-release"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ]
+  },
+  "devDependencies": {
+    "semantic-release": "^23.0.0",
+    "@semantic-release/changelog": "^6.0.0",
+    "@semantic-release/git": "^10.0.0",
+    "@semantic-release/github": "^9.0.0",
+    "@semantic-release/npm": "^11.0.0"
+  }
+}

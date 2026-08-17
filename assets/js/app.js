@@ -19,7 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const authModel = new AuthModel();
   const channelController = new ChannelController(new ChannelModel(), new ChannelView(), authModel);
 
-  new AuthController(authModel, new AuthView(), {
+  const authController = new AuthController(authModel, new AuthView(), {
     onCredentialReady: () => channelController.start(),
   });
+
+  // start() decide se mostra o botão do Google, restaura a sessão salva
+  // neste navegador e, se já houver credencial, avisa o ChannelController
+  authController.start();
 });

@@ -1,18 +1,16 @@
 {
-  "name": "template-clcmo",
+  "name": "sinalaovivo",
   "version": "0.0.0-development",
-  "description": "Template de projeto para publicação com Semantic Release",
+  "description": "Sinal Ao Vivo — interface web MVC que agrega transmissões ao vivo do YouTube por segmento, com login Google e troca de tema via CSS.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/clcmo/template.git"
+    "url": "https://github.com/clcmo/sinalaovivo.git"
   },
-  "author": "Camila <milla@apprendendo.blog>",
+  "author": "Camila <milla@apreendendo.blog>",
   "license": "MIT",
+  "private": true,
   "scripts": {
     "release": "semantic-release"
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "release": {
     "branches": [

@@ -1,11 +1,11 @@
 const API_BASE = 'https://www.googleapis.com/youtube/v3';
 
-// Lista de canais de grande relevância (CazéTV, Dia TV, TV Cultura, MTV Brasil, etc.)
+// Lista de canais de grande relevância (CazéTV, DiaTV, TV Cultura, MTV Brasil)
 export const RELEVANT_CHANNELS = [
-  { id: 'UC_IE-06G4R8qTh1Uef1eimw', name: 'CazéTV' },[cite: 1]
-  { id: 'UC3p-fmsP6fRByXJ9S9G8hDA', name: 'Dia TV' },[cite: 1]
-  { id: 'UC35_B-Q1A1c-1tI2J0C--A', name: 'TV Cultura' },[cite: 1]
-  { id: 'UC2y7J_24n8N_J8B-4R42YyA', name: 'MTV Brasil' },[cite: 1]
+  { id: 'UCZiYbVptd3PVPf4f6eR6UaQ', name: 'CazéTV' },
+  { id: 'UCKnMcgDLxDeq9HqUgLhtYbQ', name: 'DiaTV' },
+  { id: 'UCjOJvvYe6tyEHY21OD33h8A', name: 'TV Cultura' },
+  { id: 'UCVN82Qid2Al8bPBr9I0FxVQ', name: 'MTV Brasil' },
 ];
 
 export const SEGMENTS = [

@@ -60,8 +60,8 @@ Quem não configurar o login do Google (ou não quiser passar pelo consentimento
    - Escopo adicionado: `https://www.googleapis.com/auth/youtube.readonly`
    - Publicação: deixe em **Teste** e adicione os e-mails da turma em "Usuários de teste" (até 100) — não precisa passar pela verificação do Google para uso didático
 4. Crie uma credencial **ID do cliente OAuth**, tipo **Aplicativo da Web**:
-   - Origens JavaScript autorizadas: a URL onde o GitHub Pages vai publicar (ex: `https://clcmo.github.io`)
-5. Copie o Client ID gerado (algo como `123...apps.googleusercontent.com`) e cole em `js/config.js`:
+   - Origens JavaScript autorizadas: a URL onde o site é publicado (ex: `https://dev.camilaloliveira.me`)
+5. Copie o Client ID gerado (algo como `123...apps.googleusercontent.com`) e cole em `assets/js/config.js`:
 
 ```js
 export const CONFIG = {
@@ -95,19 +95,24 @@ Ou use a extensão **Live Server** do VS Code.
 ## Publicando no GitHub Pages
 
 ```bash
-git init
 git add .
-git commit -m "Sinal Ao Vivo: MVC + temas + login com Google"
-git branch -M main
-git remote add origin https://github.com/clcmo/sinal-ao-vivo.git
-git push -u origin main
+git commit -m "fix: corrige bugs de integração e caminhos após reorganização em assets/"
+git push origin main
 ```
 
-No GitHub: **Settings → Pages → Source: Deploy from a branch → main / (root)**. Em 1–2 minutos o site fica em `https://clcmo.github.io/sinal-ao-vivo/` — lembre de usar essa mesma URL como origem autorizada no passo de configuração do Google acima.
+No GitHub: **Settings → Pages → Source: Deploy from a branch → main / (root)**. O site já está publicado com domínio próprio em `https://dev.camilaloliveira.me/sinalaovivo/` — use essa mesma URL como origem autorizada no passo de configuração do Google acima (e não `clcmo.github.io`, que só se aplicaria sem domínio customizado).
+
+### Versionamento automático
+
+Todo push em `main` dispara o workflow `.github/workflows/workflow.yml`, que roda `semantic-release` (config em `.releaserc.json`) para gerar changelog, tag e release no GitHub a partir das mensagens de commit ([Conventional Commits](https://www.conventionalcommits.org/): `fix:`, `feat:`, `BREAKING CHANGE:` etc.). O pacote nunca é publicado no npm (`npmPublish: false`) — o projeto é um site estático, não uma biblioteca.
+
+## Páginas de política
+
+`privacy.html` e `terms.html`, na raiz do projeto, existem principalmente para satisfazer a Tela de Consentimento OAuth do Google (que exige links de privacidade e termos para apps que pedem escopos sensíveis como `youtube.readonly`). Ambas reaproveitam o CSS de `assets/css/` e têm um link de volta para `index.html`.
 
 ## Privacidade
 
-Não existe servidor próprio nem banco de dados. Tokens de acesso do Google vivem só na memória da aba (nunca são salvos) e expiram sozinhos; a chave manual e a lista de favoritos de cada perfil ficam em `localStorage`, no navegador de cada pessoa. O login por nome de usuário (sem Google) não é autenticação de verdade — qualquer um que souber o nome digitado acessa aquele perfil no mesmo navegador. Bom para casa e sala de aula; não recomendado para dados sensíveis.
+Não existe servidor próprio nem banco de dados. Tokens de acesso do Google vivem só na memória da aba (nunca são salvos) e expiram sozinhos; a chave manual e a lista de favoritos de cada perfil ficam em `localStorage`, no navegador de cada pessoa. O login por nome de usuário (sem Google) não é autenticação de verdade — qualquer um que souber o nome digitado acessa aquele perfil no mesmo navegador. Bom para casa e sala de aula; não recomendado para dados sensíveis. Detalhes completos em [privacy.html](./privacy.html).
 
 ## Licença
 

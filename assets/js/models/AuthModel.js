@@ -1,33 +1,54 @@
+import { CONFIG } from '../config.js';
+
+const LAST_SESSION_KEY = 'sinal-ao-vivo:last-session';
+
 /**
  * AuthModel: guarda quem está logado (via Google ou como convidado),
  * a credencial usada para falar com a API do YouTube (token OAuth do
  * Google OU uma chave de API colada manualmente) e os canais favoritos
  * daquele perfil. Cada perfil persiste em localStorage sob uma chave própria.
+ * Também lembra qual foi a última sessão neste navegador, para restaurar
+ * o perfil sozinho quando a página é recarregada.
  *
  * Não sabe nada sobre botões, telas ou eventos de clique — isso é papel
- * da AuthView / AuthController.
+ * da AuthView / AuthController. Fala com o SDK do Google (OAuth2) porque
+ * essa é a fonte da credencial, do mesmo jeito que o ChannelModel fala
+ * com a YouTube Data API.
  */
 export class AuthModel {
   constructor() {
     this.identity = null;     // { type: 'google'|'guest', id, name, picture }
-    this.accessToken = null;  // token OAuth do Google (curta duração)
+    this.accessToken = null;  // token OAuth do Google (curta duração, nunca persistido)
     this.tokenExpiresAt = 0;
     this.apiKey = '';         // fallback: chave de API colada manualmente
     this.favorites = [];      // [{ channelId, channelTitle }]
+    this.tokenClient = null;
+
+    this._restoreLastSession();
   }
 
-  isLoggedIn() {
+  hasSession() {
     return !!this.identity;
+  }
+
+  getIdentity() {
+    return this.identity;
+  }
+
+  getApiKey() {
+    return this.apiKey;
   }
 
   loginGoogle({ email, name, picture }) {
     this.identity = { type: 'google', id: email, name, picture };
     this._loadPersisted();
+    this._rememberLastSession();
   }
 
   loginGuest(username) {
     this.identity = { type: 'guest', id: username, name: username, picture: null };
     this._loadPersisted();
+    this._rememberLastSession();
   }
 
   logout() {
@@ -36,9 +57,11 @@ export class AuthModel {
     this.tokenExpiresAt = 0;
     this.apiKey = '';
     this.favorites = [];
+    this._forgetLastSession();
   }
 
-  forget() {
+  /** Apaga também os dados persistidos do perfil atual (favoritos + chave). */
+  clearAll() {
     if (this.identity) {
       try {
         localStorage.removeItem(this._storageKey());
@@ -49,18 +72,40 @@ export class AuthModel {
     this.logout();
   }
 
-  setAccessToken(token, expiresInSeconds) {
-    this.accessToken = token;
-    this.tokenExpiresAt = Date.now() + (Number(expiresInSeconds) || 0) * 1000;
-  }
-
   hasValidToken() {
     return !!this.accessToken && Date.now() < this.tokenExpiresAt - 5000;
   }
 
-  setApiKey(key) {
+  saveApiKey(key) {
     this.apiKey = key;
     this._persist();
+  }
+
+  /**
+   * Pede um access_token OAuth2 ao Google (escopo youtube.readonly), na
+   * conta que já fez login. callback(error) é chamado ao final.
+   */
+  requestOAuthToken(callback) {
+    if (!window.google?.accounts?.oauth2) {
+      callback && callback(new Error('Google Identity Services indisponível.'));
+      return;
+    }
+    if (!this.tokenClient) {
+      this.tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CONFIG.GOOGLE_CLIENT_ID,
+        scope: CONFIG.YOUTUBE_SCOPE,
+        callback: response => {
+          if (response.error) {
+            callback && callback(new Error(response.error));
+            return;
+          }
+          this.accessToken = response.access_token;
+          this.tokenExpiresAt = Date.now() + (Number(response.expires_in) || 0) * 1000;
+          callback && callback(null);
+        },
+      });
+    }
+    this.tokenClient.requestAccessToken({ prompt: '' });
   }
 
   /**
@@ -110,6 +155,33 @@ export class AuthModel {
       }));
     } catch (e) {
       // armazenamento local indisponível — segue sem persistir
+    }
+  }
+
+  _rememberLastSession() {
+    try {
+      localStorage.setItem(LAST_SESSION_KEY, JSON.stringify(this.identity));
+    } catch (e) {
+      // sem problema — só significa que não vai logar sozinho da próxima vez
+    }
+  }
+
+  _forgetLastSession() {
+    try {
+      localStorage.removeItem(LAST_SESSION_KEY);
+    } catch (e) {
+      // sem problema
+    }
+  }
+
+  _restoreLastSession() {
+    try {
+      const raw = localStorage.getItem(LAST_SESSION_KEY);
+      if (!raw) return;
+      this.identity = JSON.parse(raw);
+      this._loadPersisted();
+    } catch (e) {
+      this.identity = null;
     }
   }
 }

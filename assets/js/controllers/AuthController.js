@@ -26,9 +26,10 @@ function decodeJwt(token) {
  */
 
 export class AuthController {
-  constructor(authModel, authView) {
+  constructor(authModel, authView, { onCredentialReady } = {}) {
     this.model = authModel;
     this.view = authView;
+    this.onCredentialReady = onCredentialReady || (() => {});
 
     this.view.bind({
       onGuestSubmit: name => this._loginAsGuest(name),
@@ -51,6 +52,7 @@ export class AuthController {
     if (this.model.hasSession()) {
       this.view.renderProfile(this.model.getIdentity());
       this.view.prefillManualKey(this.model.getApiKey());
+      if (this.model.credential()) this.onCredentialReady();
     } else {
       this.view.reset();
     }
@@ -90,8 +92,16 @@ export class AuthController {
   }
 
   _authorizeYoutube() {
-    this.model.requestOAuthToken(() => {
+    this.model.requestOAuthToken(err => {
+      if (err) {
+        this.view.setKeyStatus(
+          'Não foi possível autorizar o acesso ao YouTube (' + err.message + '). Você pode usar a chave manual abaixo.',
+          true
+        );
+        return;
+      }
       this.view.setKeyStatus('Acesso ao YouTube autorizado com sucesso!');
+      this.onCredentialReady();
     });
   }
 
@@ -102,6 +112,7 @@ export class AuthController {
     }
     this.model.saveApiKey(key);
     this.view.setKeyStatus('Chave salva com sucesso!');
+    this.onCredentialReady();
   }
 
   _logout() {

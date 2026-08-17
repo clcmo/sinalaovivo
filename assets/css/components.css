@@ -128,3 +128,20 @@ button { cursor: pointer; border: none; border-radius: 8px; font-family: 'Inter'
 @media (prefers-reduced-motion: reduce) {
   .tally .dot { animation: none; }
 }
+
+/* ---- rodapé ---- */
+.app-footer {
+  border-top: 1px solid var(--border);
+  margin-top: 40px;
+  padding-top: 18px;
+  color: var(--muted);
+  font-size: 12.5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.footer-links { display: flex; gap: 6px; flex-wrap: wrap; }
+.footer-links a { color: var(--muted); text-decoration: none; }
+.footer-links a:hover { color: var(--teal); text-decoration: underline; }

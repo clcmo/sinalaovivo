@@ -53,6 +53,7 @@ export class ChannelController {
   async refresh() {
     const credential = this.authModel.credential();
     if (!credential) {
+      this.view.clearGrid();
       this.view.setStatus('Conecte sua conta Google ou uma chave de API para sintonizar.', true);
       return;
     }
